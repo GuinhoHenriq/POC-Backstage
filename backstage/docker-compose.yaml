@@ -1,0 +1,36 @@
+# docker-compose.yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17.0-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  backstage:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      APP_CONFIG_backend_database_client: pg
+      APP_CONFIG_backend_database_connection_host: postgres
+      APP_CONFIG_backend_database_connection_port: 5432
+      APP_CONFIG_backend_database_connection_user: admin
+      APP_CONFIG_backend_database_connection_password: admin
+      APP_CONFIG_app_baseUrl: http://localhost:7007
+      APP_CONFIG_backend_baseUrl: http://localhost:7007
+    ports:
+      - "7007:7007"
+    depends_on:
+      - postgres
+
+# Volumes para persistir dados
+volumes:
+  postgres_data:
